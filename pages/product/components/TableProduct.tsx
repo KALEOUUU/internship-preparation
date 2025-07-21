@@ -4,7 +4,7 @@ import { Box, Button, Stack, TablePagination } from "@mui/material";
 import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { useRouter } from "next/router";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import ClearIcon from "@mui/icons-material/Clear";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function TableProduct({
@@ -58,7 +58,7 @@ export default function TableProduct({
             size="small"
             onClick={() => onDelete(params.row.id)}
           >
-            <DeleteIcon />
+            <ClearIcon />
           </Button>
         </Stack>
       ),

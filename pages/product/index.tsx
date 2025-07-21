@@ -16,14 +16,15 @@ import {
   updateProduct,
   deleteProduct,
   getProductByCategory,
-  getCategories,
-} from "@/lib/api";
-import FormProduct from "@/components/FormProduct";
+  getCategorie,
+} from "@/pages/product/lib/api";
+import FormProduct from "./components/FormProduct";
 import Swal from "sweetalert2";
-import TableProduct from "@/components/TableProduct";
+import TableProduct from "./components/TableProduct";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import AppsIcon from "@mui/icons-material/Apps";
-import CardProducts from "@/components/CardProduct";
+import CardProducts from "./components/CardProduct";
+import SearchProduct from "./components/SearchProduct";
 
 export default function Crud() {
   const [products, setProducts] = useState<any[]>([]);
@@ -34,14 +35,20 @@ export default function Crud() {
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (search: string = "") => {
     try {
-      if (category && category !== "all") {
+      if (search) {
+        // If searching, fetch all products and filter client-side
+        const res = await getProducts(0, 1000); // fetch a large number for search
+        const filtered = res.data.products.filter((p: any) =>
+          p.title.toLowerCase().includes(search.toLowerCase())
+        );
+        setProducts(filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage));
+        setTotal(filtered.length);
+      } else if (category && category !== "all") {
         const res = await getProductByCategory(category, page, rowsPerPage);
-        const start = page * rowsPerPage;
-        const end = start + rowsPerPage;
-
         setProducts(res.data.products);
         setTotal(res.data.total);
       } else {
@@ -56,7 +63,7 @@ export default function Crud() {
 
   const fetchCategories = async () => {
     try {
-      const res = await getCategories();
+      const res = await getCategorie();
       const data = res.data;
       const cleanCategories = Array.isArray(data)
         ? data.map((item: any) => (typeof item === "string" ? item : item.name))
@@ -68,8 +75,9 @@ export default function Crud() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, [page, rowsPerPage, category]);
+    fetchProducts(searchQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, rowsPerPage, category, searchQuery]);
 
   useEffect(() => {
     fetchCategories();
@@ -86,7 +94,7 @@ export default function Crud() {
         data.image
       );
       Swal.fire("Success", "Product created!", "success");
-      fetchProducts();
+      fetchProducts(searchQuery);
     } catch (err) {
       console.error("Create error", err);
     }
@@ -102,7 +110,7 @@ export default function Crud() {
         data.category,
         data.stock
       );
-      fetchProducts();
+      fetchProducts(searchQuery);
       setSelectedProduct(null);
     } catch (err) {
       console.error("Update error", err);
@@ -122,7 +130,7 @@ export default function Crud() {
 
     try {
       await deleteProduct(id);
-      fetchProducts();
+      fetchProducts(searchQuery);
     } catch (err) {
       console.error("Delete error", err);
     }
@@ -144,21 +152,27 @@ export default function Crud() {
     setPage(0);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(0);
+  };
+
   return (
     <Container sx={{ bgcolor: "#fff", py: 8 }}>
       <Typography
         variant="h4"
         sx={{ my: 4, textAlign: "center", color: "#013e87" }}
       >
-        Manage Your Product
+        Halo, Wanna Change Your Products?
       </Typography>
+
+      <SearchProduct onSearch={handleSearch}/>
 
       <FormProduct
         onSubmit={selectedProduct ? handleUpdateProduct : handleCreateProduct}
         selectedProduct={selectedProduct}
       />
 
-      {/* <pre>{JSON.stringify(page, null, 2)}</pre> */}
 
       <Box sx={{ my: 8 }}>
         <Box
@@ -235,6 +249,7 @@ export default function Crud() {
             onChangeRowsPerPage={handleChangeRowsPerPage}
           />
         )}
+        
       </Box>
     </Container>
   );

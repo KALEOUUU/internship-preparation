@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getProductDetail } from "@/lib/api";
+import { getProductDetail } from "@/pages/product/lib/api";
 import {
   Container,
   Typography,

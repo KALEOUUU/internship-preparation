@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getProductById, updateProduct } from "@/lib/api";
-import FormProduct from "@/components/FormProduct";
+import { getProductById, updateProduct } from "@/pages/product/lib/api";
+import FormProduct from "../components/FormProduct";
 import { Button, Container, Typography } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import Swal from "sweetalert2";

@@ -14,6 +14,15 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
 
   const [error, setError] = useState<string | null>(null);
 
+  // Track field-level errors
+  const [fieldErrors, setFieldErrors] = useState({
+    title: false,
+    description: false,
+    price: false,
+    category: false,
+    stock: false,
+  });
+
   useEffect(() => {
     if (selectedProduct) {
       setForm({
@@ -24,6 +33,13 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
         category: selectedProduct.category || "",
         stock: String(selectedProduct.stock || ""),
       });
+      setFieldErrors({
+        title: false,
+        description: false,
+        price: false,
+        category: false,
+        stock: false,
+      });
     }
   }, [selectedProduct]);
 
@@ -31,10 +47,26 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
     const { name, value } = e.target;
     if (["price", "stock"].includes(name) && !/^\d*$/.test(value)) return;
     setForm({ ...form, [name]: value });
+
+    // Remove error as user types
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors({ ...fieldErrors, [name]: false });
+    }
   };
 
   const handleSubmit = () => {
     const { title, description, price, category, stock } = form;
+
+    // Check for empty fields and set field errors
+    const newFieldErrors = {
+      title: !title,
+      description: !description,
+      price: !price,
+      category: !category,
+      stock: !stock,
+    };
+
+    setFieldErrors(newFieldErrors);
 
     if (!title || !description || !price || !category || !stock) {
       setError("Semua field harus diisi kecuali gambar (jika update)");
@@ -62,8 +94,6 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
           image: form.image,
         };
 
-       
-
     onSubmit(payload);
 
     setForm({
@@ -74,6 +104,13 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
       category: "",
       stock: "",
     });
+    setFieldErrors({
+      title: false,
+      description: false,
+      price: false,
+      category: false,
+      stock: false,
+    });
   };
 
   return (
@@ -81,6 +118,8 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
       {error && <Alert severity="error">{error}</Alert>}
 
       <TextField
+        error={fieldErrors.title}
+        helperText={fieldErrors.title ? "Product Name is required" : ""}
         label="Product Name"
         name="title"
         value={form.title}
@@ -88,6 +127,8 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
         fullWidth
       />
       <TextField
+        error={fieldErrors.description}
+        helperText={fieldErrors.description ? "Description is required" : ""}
         label="Description"
         name="description"
         value={form.description}
@@ -106,6 +147,8 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
         />
       )}
       <TextField
+        error={fieldErrors.price}
+        helperText={fieldErrors.price ? "Price is required" : ""}
         label="Price"
         name="price"
         value={form.price}
@@ -113,6 +156,8 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
         fullWidth
       />
       <TextField
+        error={fieldErrors.category}
+        helperText={fieldErrors.category ? "Category is required" : ""}
         label="Category"
         name="category"
         value={form.category}
@@ -120,6 +165,8 @@ export default function FormProduct({ onSubmit, selectedProduct }: any) {
         fullWidth
       />
       <TextField
+        error={fieldErrors.stock}
+        helperText={fieldErrors.stock ? "Stock is required" : ""}
         label="Stock"
         name="stock"
         value={form.stock}
