@@ -58,15 +58,6 @@ const columns = (
         >
           Edit
         </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<DeleteIcon />}
-          onClick={() => onDelete(params.row)}
-          color="error"
-        >
-          Delete
-        </Button>
       </Box>
     ),
     sortable: false,

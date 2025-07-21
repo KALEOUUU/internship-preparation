@@ -20,8 +20,7 @@ const LoginPage = () => {
     try {
       const res = await login(username, password);
       setSuccess('Login successful!');
-      // Redirect to ProdukTable after successful login
-      router.push('/ProdukTable');
+      router.push('/user');
       console.log(res.data);
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Login failed');

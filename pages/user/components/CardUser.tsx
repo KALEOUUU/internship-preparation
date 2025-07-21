@@ -143,7 +143,7 @@ export default function CardUser({ users, loading, onViewProfile, onEditUser, on
                       size="small"
                       startIcon={<DeleteIcon />}
                       onClick={() => onDeleteUser(user)}
-                      sx={{ flex: 1 }}
+                      sx={{ flex: 1, color: "#d32f2f", borderColor: "#d32f2f" }}
                     >
                       Delete
                     </Button>
