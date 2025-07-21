@@ -40,7 +40,7 @@ export default function TableProduct({
           <Button
             variant="contained"
             size="small"
-            onClick={() => router.push(`/ProdukTable/${params.row.id}`)}
+            onClick={() => router.push(`/product/${params.row.id}`)}
           >
             <VisibilityIcon />
           </Button>
@@ -48,7 +48,7 @@ export default function TableProduct({
             variant="contained"
             color="warning"
             size="small"
-            onClick={() => router.push(`/ProdukTable/${params.row.id}/edit`)}
+            onClick={() => router.push(`/product/${params.row.id}/edit`)}
           >
             <EditIcon />
           </Button>

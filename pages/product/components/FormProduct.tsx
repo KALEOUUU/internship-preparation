@@ -1,6 +1,5 @@
 import { Box, Button, TextField, Stack, Alert } from "@mui/material";
 import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
 
 export default function FormProduct({ onSubmit, selectedProduct }: any) {
   const [form, setForm] = useState({

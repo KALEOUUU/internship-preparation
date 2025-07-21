@@ -9,7 +9,6 @@ export default function SearchProduct({
   onSearch: (query: string) => void;
 }) {
   const [search, setSearch] = useState("");
-  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -28,7 +27,7 @@ export default function SearchProduct({
   };
 
   return (
-    <Box sx={{ mb: 2, width: "20%" }}>
+    <Box sx={{ mb: 0, width: "20%" }}>
       <TextField
         value={search}
         onChange={handleInputChange}
