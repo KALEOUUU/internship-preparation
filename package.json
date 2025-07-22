@@ -15,6 +15,7 @@
     "@emotion/server": "11.11.0",
     "@emotion/styled": "11.13.0",
     "@fontsource/poppins": "^5.2.6",
+    "@hookform/resolvers": "^5.1.1",
     "@mui/icons-material": "^5.18.0",
     "@mui/lab": "5.0.0-alpha.173",
     "@mui/material": "5.16.7",
@@ -30,7 +31,9 @@
     "next-runtime-env": "1.7.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "sweetalert2": "^11.22.2"
+    "react-hook-form": "^7.60.0",
+    "sweetalert2": "^11.22.2",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "7.25.2",

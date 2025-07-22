@@ -1,8 +1,6 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -18,149 +16,227 @@ import {
   Box,
   Avatar,
   Typography,
-} from "@mui/material"
-import type { User } from "../types/user"
+} from "@mui/material";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  createUserSchema,
+  editUserSchema,
+  CreateSchemaType,
+  EditSchemaType,
+} from "../validation/user.schema";
+import type { User } from "../types/user";
+import { createYupResolver } from "../lib/api";
 
 interface FormUserProps {
-  open: boolean
-  onClose: () => void
-  onSubmit: (userData: any) => void
-  user?: User | null
-  mode: "create" | "edit"
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (userData: CreateSchemaType | EditSchemaType, id?: number) => void;
+  user?: User | null;
+  mode: "create" | "update";
 }
 
-export default function FormUser({ open, onClose, onSubmit, user, mode }: FormUserProps) {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    gender: "",
-    phone: "",
-    address: "",
-    city: "",
-  })
+export default function FormUser({
+  open,
+  onClose,
+  onSubmit,
+  user,
+  mode,
+}: FormUserProps) {
+  const schema = mode === "create" ? createUserSchema : editUserSchema;
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<CreateSchemaType | EditSchemaType>({
+    resolver: createYupResolver(schema),
+    defaultValues: {
+      firstname: "",
+      lastname: "",
+      username: "",
+      email: "",
+      image: undefined,
+      gender: undefined,
+      phonenumber: "",
+      address: "",
+      city: "",
+    },
+  });
+
+  // Auto-fill data saat edit
   useEffect(() => {
-    if (user && mode === "edit") {
-      setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
+    if (mode === "update" && user) {
+      reset({
+        firstname: user.firstName || "",
+        lastname: user.lastName || "",
         username: user.username || "",
         email: user.email || "",
-        gender: user.gender || "",
-        phone: user.phone || "",
+        gender: (user.gender as "male" | "female") || "",
+        phonenumber: user.phone || "",
         address: user.address?.address || "",
         city: user.address?.city || "",
-      })
-    } else {
-      // Reset form untuk mode create
-      setFormData({
-        firstName: "",
-        lastName: "",
+        image: undefined,
+      });
+    } else if (mode === "create") {
+      reset({
+        firstname: "",
+        lastname: "",
         username: "",
         email: "",
-        gender: "",
-        phone: "",
+        gender: undefined,
+        phonenumber: "",
         address: "",
         city: "",
-      })
+        image: undefined,
+      });
     }
-  }, [user, mode, open])
+  }, [user, mode, open, reset]);
 
-  const handleChange = (field: string) => (event: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: event.target.value,
-    }))
-  }
+  const genderValue = watch("gender") || "";
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const submitData = {
-      ...formData,
-      id: user?.id,
+  const handleFormSubmit: SubmitHandler<CreateSchemaType | EditSchemaType> = (
+    data
+  ) => {
+    if (mode === "update") {
+      onSubmit(data, user?.id);
+    } else {
+      onSubmit(data);
     }
-    onSubmit(submitData)
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={2}>
           {user?.image && <Avatar src={user.image} />}
-          <Typography variant="h6">{mode === "edit" ? "Edit User" : "Create New User"}</Typography>
+          <Typography variant="h6">
+            {mode === "update" ? "Edit User" : "Create New User"}
+          </Typography>
         </Box>
       </DialogTitle>
-      <form onSubmit={handleSubmit}>
+
+      <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
                 label="First Name"
-                value={formData.firstName}
-                onChange={handleChange("firstName")}
-                required
+                fullWidth
+                {...register("firstname")}
+                error={!!errors.firstname}
+                helperText={errors.firstname?.message}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
                 label="Last Name"
-                value={formData.lastName}
-                onChange={handleChange("lastName")}
-                required
+                fullWidth
+                {...register("lastname")}
+                error={!!errors.lastname}
+                helperText={errors.lastname?.message}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
                 label="Username"
-                value={formData.username}
-                onChange={handleChange("username")}
-                required
+                fullWidth
+                {...register("username")}
+                error={!!errors.username}
+                helperText={errors.username?.message}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
                 label="Email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange("email")}
-                required
+                fullWidth
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={!!errors.gender}>
                 <InputLabel>Gender</InputLabel>
-                <Select value={formData.gender} label="Gender" onChange={handleChange("gender")}>
+                <Select
+                  label="Gender"
+                  value={genderValue}
+                  onChange={(e) =>
+                    setValue("gender", e.target.value as "male" | "female")
+                  }
+                >
                   <MenuItem value="male">Male</MenuItem>
                   <MenuItem value="female">Female</MenuItem>
                 </Select>
+                <Typography variant="caption" color="error">
+                  {errors.gender?.message}
+                </Typography>
               </FormControl>
             </Grid>
+
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="Phone" value={formData.phone} onChange={handleChange("phone")} />
+              <TextField
+                label="Phone"
+                fullWidth
+                {...register("phonenumber")}
+                error={!!errors.phonenumber}
+                helperText={errors.phonenumber?.message}
+              />
             </Grid>
+
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="Address" value={formData.address} onChange={handleChange("address")} />
+              <TextField
+                label="Address"
+                fullWidth
+                {...register("address")}
+                error={!!errors.address}
+                helperText={errors.address?.message}
+              />
             </Grid>
+
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="City" value={formData.city} onChange={handleChange("city")} />
+              <TextField
+                label="City"
+                fullWidth
+                {...register("city")}
+                error={!!errors.city}
+                helperText={errors.city?.message}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <input
+                type="file"
+                accept="image/jpeg, image/png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  setValue("image", file || undefined);
+                }}
+              />
+              <Typography variant="caption" color="error">
+                {errors.image?.message}
+              </Typography>
             </Grid>
           </Grid>
         </DialogContent>
+
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={onClose} color="inherit">
             Cancel
           </Button>
           <Button type="submit" variant="contained" sx={{ bgcolor: "#013e87" }}>
-            {mode === "edit" ? "Update User" : "Create User"}
+            {mode === "update" ? "Update User" : "Create User"}
           </Button>
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }

@@ -26,7 +26,7 @@ const UserPage = () => {
 
   // Tambahkan state baru
   const [formOpen, setFormOpen] = useState(false)
-  const [formMode, setFormMode] = useState<"create" | "edit">("create")
+  const [formMode, setFormMode] = useState<"create" | "update">("create")
   const [editingUser, setEditingUser] = useState<any>(null)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
 
@@ -125,7 +125,7 @@ const UserPage = () => {
   // Fungsi untuk handle edit user
   const handleEditUser = (user: any) => {
     setEditingUser(user)
-    setFormMode("edit")
+    setFormMode("update")
     setFormOpen(true)
     setDetailModalOpen(false)
   }

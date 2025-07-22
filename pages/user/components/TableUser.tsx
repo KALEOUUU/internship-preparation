@@ -1,6 +1,6 @@
 "use client"
 
-import EditIcon from "@mui/icons-material/Edit"
+// import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 import VisibilityIcon from "@mui/icons-material/Visibility"
 import { Box, Button, TablePagination } from "@mui/material"
@@ -52,11 +52,11 @@ const columns = (
         <Button
           variant="outlined"
           size="small"
-          startIcon={<EditIcon />}
-          onClick={() => onEditUser(params.row)}
-          color="primary"
+          startIcon={<DeleteIcon />}
+          onClick={() => onDelete(params.row)}
+          color="error"
         >
-          Edit
+          Delete
         </Button>
       </Box>
     ),
