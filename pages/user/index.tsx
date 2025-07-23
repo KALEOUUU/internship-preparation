@@ -14,10 +14,16 @@ import UserDetailModal from "./[id]"
 import { createUser, updateUser, deleteUser } from "./lib/api"
 import Swal from "sweetalert2"
 import AddIcon from "@mui/icons-material/Add"
+import { useFetchAllUsers } from "./service/useFetchAll.services"
+import { useCreateUser } from "./service/useCreate.services"
+import { useSearchUsers } from "./service/useSearch.services"
+import { useDeleteUser } from "./service/useDelete.services"
+import { useUpdateUser } from "./service/useUpdate.services"
+import { set } from "react-hook-form"
 
 const UserPage = () => {
   const [users, setUsers] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  // Hapus state loading manual, gunakan isLoading dari useFetchAllUsers
   const [search, setSearch] = useState("")
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -30,73 +36,77 @@ const UserPage = () => {
   const [editingUser, setEditingUser] = useState<any>(null)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
 
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      const res = await getAllUser()
-      setUsers(res.data.users)
-    } catch {
-      setUsers([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchSearchUsers = async (query: string) => {
-    setLoading(true)
-    try {
-      const res = await getSearchUser(query, 0, 100)
-      setUsers(res.data.users)
-    } catch {
-      setUsers([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data, isLoading } = useFetchAllUsers()
+  const { mutate: createUserMutation, isPending: isCreating } = useCreateUser()
+  const { data: searchData, isLoading: isSearching } = useSearchUsers(search, 0, 100)
 
   useEffect(() => {
-    if (search.trim() === "") fetchUsers()
-    else fetchSearchUsers(search)
+    if (search.trim() === "") {
+      if (data) setUsers(data.data.users)
+    } else {
+      if (searchData) setUsers(searchData.data.users)
+      else setUsers([])
+    }
     // eslint-disable-next-line
-  }, [search])
+  }, [search, data, searchData])
+
+  
 
   // Fungsi untuk handle create user
-  const handleCreateUser = async (userData: any) => {
-    try {
-      await createUser(
-        userData.id,
-        `${userData.firstName} ${userData.lastName}`,
-        userData.email,
-        "password123", // Default password
-      )
-      Swal.fire("Success", "User created successfully!", "success")
-      setFormOpen(false)
-      fetchUsers()
-    } catch (error) {
-      Swal.fire("Error", "Failed to create user", "error")
-    }
+  const handleCreateUser = (userData: any) => {
+    createUserMutation(
+      {
+        id: userData.id,
+        name: `${userData.firstName} ${userData.lastName}`,
+        email: userData.email,
+        password: "password123",
+      },
+      {
+        onSuccess: (data: any) => {
+          Swal.fire("Success", "User created successfully!", "success")
+          setFormOpen(false)
+          setUsers((prev) => [...prev, data])
+        },
+        onError: () => {
+          Swal.fire("Error", "Failed to create user", "error")
+        },
+      }
+    )
   }
 
+  // Integrasi useUpdateUser
+  const { mutate: updateUserMutation, isPending: isUpdating } = useUpdateUser()
+
   // Fungsi untuk handle update user
-  const handleUpdateUser = async (userData: any) => {
-    try {
-      await updateUser(
-        userData.id,
-        `${userData.firstName} ${userData.lastName}`,
-        userData.email,
-        "password123", // Keep existing password
-        userData.gender,
-        userData.phone,
-        `${userData.address}, ${userData.city}`,
-      )
-      Swal.fire("Success", "User updated successfully!", "success")
-      setFormOpen(false)
-      setEditingUser(null)
-      fetchUsers()
-    } catch (error) {
-      Swal.fire("Error", "Failed to update user", "error")
-    }
+  const handleUpdateUser = (userData: any) => {
+    updateUserMutation(
+      {
+        id: userData.id,
+        firstname: userData.firstName,
+        lastname: userData.lastName,
+        email: userData.email,
+        gender: userData.gender,
+        phone: userData.phone,
+        address: isNaN(Number(userData.address)) ? '0' : userData.address.toString(),
+      },
+      {
+        onSuccess: (data: any) => {
+          Swal.fire("Success", "User updated successfully!", "success")
+          setFormOpen(false)
+          setEditingUser(null)
+          setUsers((prev) =>
+            prev.map((user) => (user.id === userData.id ? { ...user, ...userData } : user)),
+          )
+        },
+        onError: () => {
+          Swal.fire("Error", "Failed to update user", "error")
+        },
+      }
+    )
   }
+
+  // Integrasi useDeleteUser
+  const { mutate: deleteUserMutation, isPending: isDeleting } = useDeleteUser()
 
   // Fungsi untuk handle delete user
   const handleDeleteUser = async (user: any) => {
@@ -111,14 +121,19 @@ const UserPage = () => {
     })
 
     if (result.isConfirmed) {
-      try {
-        await deleteUser(user.id)
-        Swal.fire("Deleted!", "User has been deleted.", "success")
-        fetchUsers()
-        setDetailModalOpen(false)
-      } catch (error) {
-        Swal.fire("Error", "Failed to delete user", "error")
-      }
+      deleteUserMutation(
+        user.id,
+        {
+          onSuccess: () => {
+            Swal.fire("Deleted!", "User has been deleted.", "success")
+            setUsers((prev) => prev.filter((u) => u.id !== user.id))
+            setDetailModalOpen(false)
+          },
+          onError: () => {
+            Swal.fire("Error", "Failed to delete user", "error")
+          },
+        }
+      )
     }
   }
 
@@ -236,7 +251,7 @@ const UserPage = () => {
       </Paper>
 
       {/* Content Section dengan conditional rendering */}
-      {loading ? (
+      {(isLoading || isSearching) ? (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
           <CircularProgress sx={{ color: "#013e87" }} />
         </Box>
@@ -245,7 +260,7 @@ const UserPage = () => {
           {viewMode === "table" ? (
             <TableUser
               users={users}
-              loading={loading}
+              loading={isLoading}
               onViewProfile={handleViewProfile}
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
@@ -253,7 +268,7 @@ const UserPage = () => {
           ) : (
             <CardUser
               users={users}
-              loading={loading}
+              loading={isLoading}
               onViewProfile={handleViewProfile}
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}

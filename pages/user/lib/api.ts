@@ -11,6 +11,10 @@ export interface UsersResponse {
   limit: number
 }
 
+// export const getAllUser = (): Promise<{ data: UsersResponse }> => {
+//   return axios.get(`${API_URL}/users`)
+// }
+
 export const getAllUser = (): Promise<{ data: UsersResponse }> => {
   return axios.get(`${API_URL}/users`)
 }
