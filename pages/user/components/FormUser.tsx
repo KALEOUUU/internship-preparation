@@ -27,23 +27,57 @@ import {
 } from "../validation/user.schema";
 import type { User } from "../types/user";
 import { createYupResolver } from "../lib/api";
+import { useCreateUser } from "../services/createUser.services";
+import { useRouter } from "next/navigation";
 
 interface FormUserProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (userData: CreateSchemaType | EditSchemaType, id?: number) => void;
   user?: User | null;
-  mode: "create" | "update";
+  mode: "create";
+}
+
+type UserFormData = {
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  image?: File | null;
 }
 
 export default function FormUser({
   open,
   onClose,
-  onSubmit,
   user,
-  mode,
+  mode = "create",
 }: FormUserProps) {
-  const schema = mode === "create" ? createUserSchema : editUserSchema;
+  const schema = createUserSchema;
+  const router = useRouter();
+
+  const { mutate, status } = useCreateUser();
+
+  const onSubmit = (data: UserFormData) => {
+    mutate({ data: {
+      firstName: data.firstname,
+      lastName: data.lastname,
+      username: data.username,
+      email: data.email,
+      image: data.image ? URL.createObjectURL(data.image) : '',
+      password: "",
+      gender: "",
+      phone: 0,
+      address: "",
+      city: ""
+    }}, {
+      onSuccess: () => {
+        reset();
+        setTimeout(() => {
+          router.push("/user");
+        }, 1500);
+      },
+    });
+  };
 
   const {
     register,
@@ -52,8 +86,8 @@ export default function FormUser({
     reset,
     watch,
     formState: { errors },
-  } = useForm<CreateSchemaType | EditSchemaType>({
-    resolver: createYupResolver(schema),
+  } = useForm<CreateSchemaType>({
+    resolver: createYupResolver(createUserSchema),
     defaultValues: {
       firstname: "",
       lastname: "",
@@ -67,46 +101,22 @@ export default function FormUser({
     },
   });
 
-  // Auto-fill data saat edit
-  useEffect(() => {
-    if (mode === "update" && user) {
-      reset({
-        firstname: user.firstName || "",
-        lastname: user.lastName || "",
-        username: user.username || "",
-        email: user.email || "",
-        gender: (user.gender as "male" | "female") || "",
-        phonenumber: user.phone || "",
-        address: user.address?.address || "",
-        city: user.address?.city || "",
-        image: undefined,
-      });
-    } else if (mode === "create") {
-      reset({
-        firstname: "",
-        lastname: "",
-        username: "",
-        email: "",
-        gender: undefined,
-        phonenumber: "",
-        address: "",
-        city: "",
-        image: undefined,
-      });
-    }
-  }, [user, mode, open, reset]);
+  // Tidak perlu auto-fill data untuk update
 
   const genderValue = watch("gender") || "";
 
   const handleFormSubmit: SubmitHandler<CreateSchemaType | EditSchemaType> = (
-    data
-  ) => {
-    if (mode === "update") {
-      onSubmit(data, user?.id);
-    } else {
-      onSubmit(data);
-    }
-  };
+      data
+    ) => {
+      const formData: UserFormData = {
+        firstname: data.firstname,
+        lastname: data.lastname,
+        username: data.username,
+        email: data.email,
+        image: data.image instanceof File ? data.image : null
+      };
+      onSubmit(formData);
+    };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -114,7 +124,7 @@ export default function FormUser({
         <Box display="flex" alignItems="center" gap={2}>
           {user?.image && <Avatar src={user.image} />}
           <Typography variant="h6">
-            {mode === "update" ? "Edit User" : "Create New User"}
+            Create New User
           </Typography>
         </Box>
       </DialogTitle>
@@ -218,7 +228,9 @@ export default function FormUser({
                 accept="image/jpeg, image/png"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  setValue("image", file || undefined);
+                  if (file) {
+                    setValue("image", file);
+                  }
                 }}
               />
               <Typography variant="caption" color="error">
@@ -233,7 +245,7 @@ export default function FormUser({
             Cancel
           </Button>
           <Button type="submit" variant="contained" sx={{ bgcolor: "#013e87" }}>
-            {mode === "update" ? "Update User" : "Create User"}
+            Create User
           </Button>
         </DialogActions>
       </form>

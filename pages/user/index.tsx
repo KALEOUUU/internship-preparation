@@ -6,12 +6,11 @@ import TableRowsIcon from "@mui/icons-material/TableRows"
 import AppsIcon from "@mui/icons-material/Apps"
 import TableUser from "./components/TableUser"
 import CardUser from "./components/CardUser"
-import { getAllUser, getSearchUser } from "./lib/api"
 
 // Import komponen baru
-import FormUser from "./components/FormUser"
+// import FormUser from "./components/FormUser"
 import UserDetailModal from "./[id]"
-import { createUser, updateUser, deleteUser } from "./lib/api"
+import { deleteUser } from "./lib/api"
 import Swal from "sweetalert2"
 import AddIcon from "@mui/icons-material/Add"
 import { useFetchAllUsers } from "./service/useFetchAll.services"
@@ -35,6 +34,9 @@ const UserPage = () => {
   const [formMode, setFormMode] = useState<"create" | "update">("create")
   const [editingUser, setEditingUser] = useState<any>(null)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
 
   const { data, isLoading } = useFetchAllUsers()
   const { mutate: createUserMutation, isPending: isCreating } = useCreateUser()
@@ -121,6 +123,7 @@ const UserPage = () => {
     })
 
     if (result.isConfirmed) {
+
       deleteUserMutation(
         user.id,
         {
@@ -135,7 +138,7 @@ const UserPage = () => {
         }
       )
     }
-  }
+    }
 
   // Fungsi untuk handle edit user
   const handleEditUser = (user: any) => {
@@ -152,14 +155,14 @@ const UserPage = () => {
     setFormOpen(true)
   }
 
-  // Fungsi untuk handle form submit
-  const handleFormSubmit = (userData: any) => {
-    if (formMode === "create") {
-      handleCreateUser(userData)
-    } else {
-      handleUpdateUser(userData)
-    }
-  }
+  // // Fungsi untuk handle form submit
+  // const handleFormSubmit = (userData: any) => {
+  //   if (formMode === "create") {
+  //     handleCreateUser(userData)
+  //   } else {
+  //     handleUpdateUser(userData)
+  //   }
+  // }
 
   // Update handleViewProfile untuk membuka detail modal
   const handleViewProfile = (user: any) => {
@@ -277,16 +280,16 @@ const UserPage = () => {
         </>
       )}
 
-      <FormUser
+      {/* <FormUser
         open={formOpen}
         onClose={() => {
           setFormOpen(false)
           setEditingUser(null)
         }}
-        onSubmit={handleFormSubmit}
+        // onSubmit={handleFormSubmit}
         user={editingUser}
-        mode={formMode}
-      />
+
+      /> */}
 
       {/* Detail Modal */}
       <UserDetailModal

@@ -7,11 +7,9 @@ export interface User {
     image?: string
     gender?: string
     phone?: string
-    rowsPerPageOptions: any,
     address?: {
       address: string
       city: string
     }
-    [key: string]: any
   }
   

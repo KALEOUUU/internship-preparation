@@ -3,18 +3,13 @@
 // import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 import VisibilityIcon from "@mui/icons-material/Visibility"
-import { Box, Button, TablePagination } from "@mui/material"
+import { useEffect } from "react"
+import { Box, Button, TablePagination, Typography } from "@mui/material"
 import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid"
 import { useState } from "react"
-
-// Definisikan tipe data User (ganti dengan tipe data yang sesuai)
-interface User {
-  id: number
-  firstName: string
-  lastName: string
-  username: string
-  email: string
-}
+import { User } from "../types/user"
+import { useFetchUsers } from "../services/fetchAllUser.services"
+import { useDeleteUser } from "../services/deleteUser.services"
 
 interface TableUserProps {
   users: User[]
@@ -66,27 +61,40 @@ const columns = (
 ]
 
 export default function TableUser({
-  users,
+  users = [],
   loading,
   onViewProfile,
   onEditUser,
   onDeleteUser,
   page: initialPage = 0,
 }: TableUserProps) {
-  // Pagination state
-  const [page, setPage] = useState(initialPage)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [page, setPage] = useState(initialPage);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Calculate paginated users
-  const paginatedUsers = users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+  const { mutate, isPending, data: userData } = useDeleteUser()
+
+  const { data, error } = useFetchUsers({
+    skip: page * rowsPerPage,
+    limit: rowsPerPage,
+  })
+  const paginatedUsers = data?.users || []
+  const totalCount = data?.total || 0
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage)
   }
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+        <Typography color="error">Gagal fetch data user: {error.message || "Unknown error"}</Typography>
+      </Box>
+    )
   }
 
   return (
@@ -94,12 +102,11 @@ export default function TableUser({
       <Box sx={{ display: "flex", justifyContent: "end", mt: 4 }}>
         <TablePagination
           component="div"
-          count={users.length}
+          count={totalCount}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[3, 6, 12, 24, 48]}
           labelRowsPerPage="Rows per page:"
         />
       </Box>
@@ -108,7 +115,6 @@ export default function TableUser({
           rows={paginatedUsers}
           columns={columns(onViewProfile, onEditUser, onDeleteUser)}
           rowCount={users.length}
-          pageSizeOptions={[3, 6, 12, 24, 48]}
           loading={loading}
           disableRowSelectionOnClick
           autoHeight
