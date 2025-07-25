@@ -16,6 +16,7 @@ export const baseUserSchema = {
   lastname: yup.string().required("Last name is required"),
   username: yup.string().required("Username is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
+  birthdate: yup.date().required("Birthdate is required"),
   image: yup
     .mixed()
     .test("fileSize", "Image too large", (file) => {

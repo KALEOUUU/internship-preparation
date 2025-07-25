@@ -16,6 +16,7 @@ interface dataCreateUser {
   image: string;
   gender: string;
   phone: number;
+  birthdate?: string;
   address: string;
   city: string;
   };

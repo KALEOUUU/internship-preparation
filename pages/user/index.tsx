@@ -6,6 +6,7 @@ import TableRowsIcon from "@mui/icons-material/TableRows"
 import AppsIcon from "@mui/icons-material/Apps"
 import TableUser from "./components/TableUser"
 import CardUser from "./components/CardUser"
+import  FormUser  from "./components/FormUser"
 
 // Import komponen baru
 // import FormUser from "./components/FormUser"
@@ -18,15 +19,14 @@ import { useCreateUser } from "./service/useCreate.services"
 import { useSearchUsers } from "./service/useSearch.services"
 import { useDeleteUser } from "./service/useDelete.services"
 import { useUpdateUser } from "./service/useUpdate.services"
+import { useRouter } from "next/navigation"
 import { set } from "react-hook-form"
 
 const UserPage = () => {
   const [users, setUsers] = useState<any[]>([])
-  // Hapus state loading manual, gunakan isLoading dari useFetchAllUsers
   const [search, setSearch] = useState("")
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  // State untuk mengontrol tampilan antara table dan card
   const [viewMode, setViewMode] = useState<"table" | "card">("table")
 
   // Tambahkan state baru
@@ -155,14 +155,14 @@ const UserPage = () => {
     setFormOpen(true)
   }
 
-  // // Fungsi untuk handle form submit
-  // const handleFormSubmit = (userData: any) => {
-  //   if (formMode === "create") {
-  //     handleCreateUser(userData)
-  //   } else {
-  //     handleUpdateUser(userData)
-  //   }
-  // }
+  // Fungsi untuk handle form submit
+  const handleFormSubmit = (userData: any) => {
+    if (formMode === "create") {
+      handleCreateUser(userData)
+    } else {
+      handleUpdateUser(userData)
+    }
+  }
 
   // Update handleViewProfile untuk membuka detail modal
   const handleViewProfile = (user: any) => {
@@ -280,16 +280,18 @@ const UserPage = () => {
         </>
       )}
 
-      {/* <FormUser
+      <FormUser
         open={formOpen}
         onClose={() => {
           setFormOpen(false)
           setEditingUser(null)
         }}
+        mode={formMode}
+        onSubmit={handleFormSubmit}
         // onSubmit={handleFormSubmit}
         user={editingUser}
 
-      /> */}
+      />
 
       {/* Detail Modal */}
       <UserDetailModal

@@ -7,6 +7,7 @@ export interface User {
     image?: string
     gender?: string
     phone?: string
+    birthdate?: string
     address?: {
       address: string
       city: string
